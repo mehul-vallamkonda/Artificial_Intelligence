@@ -1,0 +1,96 @@
+import random
+import math
+
+def cost(board):
+    """Calculate the number of pairs of queens that are attacking each other."""
+    n = len(board)
+    conflicts = 0
+   
+    # Count pairs of queens in the same column and diagonal
+    for i in range(n):
+        for j in range(i + 1, n):
+            if board[i] == board[j]:  # same column
+                conflicts += 1
+            if abs(board[i] - board[j]) == abs(i - j):  # same diagonal
+                conflicts += 1
+   
+    return conflicts
+
+def random_solution(n):
+    """Generate a random solution (board configuration)."""
+    return [random.randint(0, n - 1) for _ in range(n)]
+
+def simulated_annealing(n, initial_temp=1000, cooling_rate=0.95, stop_temp=1):
+    current_solution = random_solution(n)
+    current_cost = cost(current_solution)
+    temperature = initial_temp
+
+    while temperature > stop_temp:
+        # Generate a new solution by slightly modifying the current one
+        new_solution = current_solution[:]
+        row = random.randint(0, n - 1)
+        new_solution[row] = random.randint(0, n - 1)  # Randomly move one queen
+
+        new_cost = cost(new_solution)
+        cost_diff = new_cost - current_cost
+
+        # Accept new solution based on cost difference and temperature
+        if cost_diff < 0 or random.random() < math.exp(-cost_diff / temperature):
+            current_solution = new_solution
+            current_cost = new_cost
+
+        # Cool down the temperature
+        temperature *= cooling_rate
+
+    return current_solution
+
+def print_board(board):
+    """Print the board configuration."""
+    n = len(board)
+    for i in range(n):
+        line = ['.'] * n
+        line[board[i]] = 'Q'
+        print(' '.join(line))
+    print()
+
+# Example usage
+n = 8  # Change this for different sizes of the board
+solution = simulated_annealing(n)
+print("Solution found:")
+print_board(solution)
+print(f"Conflicts: {cost(solution)}")
+
+ALGORITHM:
+
+Simulated Annealing Algorithm for N-Queens
+Initialization:
+
+Choose the size of the board n.
+Generate a random initial solution (a configuration of queens on the board).
+Calculate the initial cost (number of attacking pairs of queens).
+Set the initial temperature T (e.g., 1000).
+Define a cooling rate (e.g., 0.95) and a stopping temperature (e.g., 1).
+Repeat until the temperature is lower than the stopping temperature:
+
+Generate a new solution:
+Copy the current solution.
+Randomly select a queen (row) and move it to a different position (column).
+Calculate the cost of the new solution.
+Determine the cost difference: Δcost=cost(new solution)−cost(current solution)
+Decide whether to accept the new solution:
+If the new solution is better (lower cost), accept it.
+If the new solution is worse, accept it with a probability: P=e−Δcost/T (Use a random number to compare with P).
+Update the current solution if accepted.
+Cool down the temperature: T=T×cooling rate
+Output:
+
+Return the best solution found and its cost.
+Summary of Steps:
+Generate Initial Solution: Randomly place queens.
+Calculate Initial Cost: Count pairs of attacking queens.
+While Temperature > Stop Temperature:
+Generate a neighboring solution.
+Calculate its cost.
+Decide to accept or reject the new solution based on cost difference and temperature.
+Reduce temperature.
+Return Final Solution: When the loop ends, the current solution is the best found.
